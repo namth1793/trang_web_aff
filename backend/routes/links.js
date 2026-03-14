@@ -3,6 +3,12 @@ const router = express.Router();
 const rateLimit = require('express-rate-limit');
 const { getDB } = require('../db/database');
 
+function getBaseUrl() {
+  if (process.env.BASE_URL) return process.env.BASE_URL;
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) return `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+  return 'http://localhost:5001';
+}
+
 function generateCode(length = 6) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
   let result = '';
@@ -96,7 +102,7 @@ router.post('/convert', limiter, async (req, res) => {
     ).get(trimmedUrl);
 
     if (existing) {
-      const baseUrl = process.env.BASE_URL || 'http://localhost:5001';
+      const baseUrl = getBaseUrl();
       return res.json({
         id: existing.id,
         originalUrl: existing.original_url,
@@ -124,7 +130,7 @@ router.post('/convert', limiter, async (req, res) => {
       'INSERT INTO links (original_url, affiliate_url, short_code) VALUES (?, ?, ?)'
     ).run(trimmedUrl, affiliateUrl, shortCode);
 
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5001';
+    const baseUrl = getBaseUrl();
 
     res.json({
       id: result.lastInsertRowid,
