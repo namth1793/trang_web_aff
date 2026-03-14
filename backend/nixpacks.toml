@@ -1,0 +1,11 @@
+# Railway dùng Nixpacks để build
+# better-sqlite3 cần compiler C++ để build native module
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "python3", "gcc", "gnumake"]
+
+[phases.install]
+cmds = ["npm install"]
+
+[start]
+cmd = "node server.js"
