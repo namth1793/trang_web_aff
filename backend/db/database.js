@@ -35,6 +35,12 @@ function initDB() {
       token TEXT UNIQUE NOT NULL,
       created_at TEXT DEFAULT (datetime('now', 'localtime'))
     );
+
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
   `);
   console.log('Database initialized');
 }

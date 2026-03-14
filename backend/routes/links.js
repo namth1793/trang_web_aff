@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
 const { getDB } = require('../db/database');
-const fetch = require('node-fetch');
 
 function generateCode(length = 6) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
@@ -33,78 +32,45 @@ function isValidShopeeUrl(url) {
   }
 }
 
-// ─── Nền tảng 1: AccessTrade Vietnam ───────────────────────────────────────
-// Đăng ký tại accesstrade.vn → Tài khoản → API Key
-// Set trong .env: AFFILIATE_PLATFORM=accesstrade, ACCESSTRADE_API_TOKEN=your_token
-async function generateViaAccessTrade(originalUrl) {
-  const token = process.env.ACCESSTRADE_API_TOKEN;
-  if (!token) return null;
-
+// ─── Lấy affiliate ID: ưu tiên DB settings, fallback env ───────────────────
+function getAffiliateId() {
   try {
-    const res = await fetch('https://api.accesstrade.vn/v1/shortenLink', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Token ${token}`
-      },
-      body: JSON.stringify({ url: originalUrl }),
-      timeout: 8000
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      console.error('[AccessTrade] Error:', res.status, err);
-      return null;
-    }
-
-    const data = await res.json();
-    // AccessTrade trả về: { data: { url_redirect: "https://accesstrade.vn/go/..." } }
-    return data?.data?.url_redirect || data?.url_redirect || null;
-  } catch (err) {
-    console.error('[AccessTrade] Request failed:', err.message);
-    return null;
-  }
+    const db = getDB();
+    const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('shopee_affiliate_id');
+    if (row && row.value) return row.value;
+  } catch {}
+  return process.env.SHOPEE_AFFILIATE_ID || '';
 }
 
-// ─── Nền tảng 2: Shopee Affiliate trực tiếp (affiliate.shopee.vn) ──────────
-// Đăng ký tại affiliate.shopee.vn → Dashboard → lấy Affiliate ID (af_id)
-// Set trong .env: AFFILIATE_PLATFORM=shopee, SHOPEE_AFFILIATE_ID=your_af_id
-// Không cần API key — link được tạo bằng cách gắn af_id vào URL gốc
-function generateViaShopeeManual(originalUrl) {
-  const affiliateId = process.env.SHOPEE_AFFILIATE_ID;
-  if (!affiliateId) return null;
+function getSmtt() {
+  try {
+    const db = getDB();
+    const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('shopee_smtt');
+    if (row && row.value) return row.value;
+  } catch {}
+  return process.env.SHOPEE_SMTT || '0.0.9';
+}
+
+// ─── Shopee Affiliate: gắn af_id vào URL gốc ────────────────────────────────
+function generateAffiliateLink(originalUrl) {
+  const affiliateId = getAffiliateId();
+
+  if (!affiliateId) {
+    console.warn('[Affiliate] Chưa cấu hình Shopee Affiliate ID — trả về URL gốc');
+    return originalUrl;
+  }
 
   try {
     const u = new URL(originalUrl);
     ['smtt', 'af_id', 'utm_source', 'utm_medium', 'utm_campaign'].forEach(p =>
       u.searchParams.delete(p)
     );
-    u.searchParams.set('smtt', process.env.SHOPEE_SMTT || '0.0.9');
+    u.searchParams.set('smtt', getSmtt());
     u.searchParams.set('af_id', affiliateId);
     return u.toString();
   } catch {
-    return null;
+    return originalUrl;
   }
-}
-
-// ─── Dispatcher ─────────────────────────────────────────────────────────────
-async function generateAffiliateLink(originalUrl) {
-  const platform = (process.env.AFFILIATE_PLATFORM || '').toLowerCase();
-
-  if (platform === 'accesstrade') {
-    const link = await generateViaAccessTrade(originalUrl);
-    if (link) return link;
-    console.warn('[Affiliate] AccessTrade failed, falling back to manual');
-  }
-
-  if (platform === 'shopee' || process.env.SHOPEE_AFFILIATE_ID) {
-    const link = generateViaShopeeManual(originalUrl);
-    if (link) return link;
-  }
-
-  // Không có cấu hình → trả về URL gốc (demo mode)
-  console.warn('[Affiliate] No platform configured — returning original URL');
-  return originalUrl;
 }
 
 // POST /api/links/convert
@@ -143,7 +109,7 @@ router.post('/convert', limiter, async (req, res) => {
       });
     }
 
-    const affiliateUrl = await generateAffiliateLink(trimmedUrl);
+    const affiliateUrl = generateAffiliateLink(trimmedUrl);
 
     // Generate unique short code
     let shortCode;

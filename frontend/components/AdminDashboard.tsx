@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   BarChart2, Link2, MousePointerClick, Calendar,
-  Trash2, ExternalLink, RefreshCw, LogOut, ChevronLeft, ChevronRight
+  Trash2, ExternalLink, RefreshCw, LogOut, ChevronLeft, ChevronRight,
+  Settings, Save, Check
 } from 'lucide-react';
 
 interface Link {
@@ -38,6 +39,12 @@ export default function AdminDashboard({ token, onLogout }: AdminDashboardProps)
   const [loading, setLoading] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
+  // Settings
+  const [affiliateId, setAffiliateId] = useState('');
+  const [smtt, setSmtt] = useState('0.0.9');
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [savedSettings, setSavedSettings] = useState(false);
+
   const headers = { 'Content-Type': 'application/json', 'x-admin-token': token };
 
   const fetchStats = useCallback(async () => {
@@ -56,8 +63,32 @@ export default function AdminDashboard({ token, onLogout }: AdminDashboardProps)
     setLoading(false);
   }, [page, token]);
 
+  const fetchSettings = useCallback(async () => {
+    const res = await fetch(`${API_URL}/api/admin/settings`, { headers });
+    if (res.ok) {
+      const data = await res.json();
+      setAffiliateId(data.shopee_affiliate_id || '');
+      setSmtt(data.shopee_smtt || '0.0.9');
+    }
+  }, [token]);
+
+  const handleSaveSettings = async () => {
+    setSavingSettings(true);
+    const res = await fetch(`${API_URL}/api/admin/settings`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ shopee_affiliate_id: affiliateId, shopee_smtt: smtt })
+    });
+    setSavingSettings(false);
+    if (res.ok) {
+      setSavedSettings(true);
+      setTimeout(() => setSavedSettings(false), 2000);
+    }
+  };
+
   useEffect(() => { fetchStats(); }, [fetchStats]);
   useEffect(() => { fetchLinks(); }, [fetchLinks]);
+  useEffect(() => { fetchSettings(); }, [fetchSettings]);
 
   const handleDelete = async (id: number) => {
     if (!confirm('Xác nhận xóa link này?')) return;
@@ -132,6 +163,78 @@ export default function AdminDashboard({ token, onLogout }: AdminDashboardProps)
             ))}
           </div>
         )}
+
+        {/* Affiliate Settings */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center">
+              <Settings size={18} className="text-orange-500" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-gray-900">Cài đặt Shopee Affiliate</h2>
+              <p className="text-xs text-gray-500">Đăng ký tại affiliate.shopee.vn → lấy Affiliate ID (af_id)</p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Shopee Affiliate ID <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={affiliateId}
+                onChange={e => setAffiliateId(e.target.value)}
+                placeholder="Ví dụ: 12345678"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:border-orange-400 focus:bg-white outline-none text-sm transition-all"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Lấy tại: affiliate.shopee.vn → Dashboard → Công cụ → af_id
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                SMTT Parameter
+              </label>
+              <input
+                type="text"
+                value={smtt}
+                onChange={e => setSmtt(e.target.value)}
+                placeholder="0.0.9"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:border-orange-400 focus:bg-white outline-none text-sm transition-all"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Mặc định: 0.0.9 (không cần thay đổi)
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              onClick={handleSaveSettings}
+              disabled={savingSettings || !affiliateId}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all
+                ${savedSettings
+                  ? 'bg-green-100 text-green-700 border border-green-200'
+                  : 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed'
+                }
+              `}
+            >
+              {savedSettings ? (
+                <><Check size={15} /> Đã lưu!</>
+              ) : savingSettings ? (
+                <><RefreshCw size={15} className="animate-spin" /> Đang lưu...</>
+              ) : (
+                <><Save size={15} /> Lưu cài đặt</>
+              )}
+            </button>
+            {affiliateId && (
+              <span className="text-xs text-gray-400">
+                Link sẽ có dạng: shopee.vn/...?smtt={smtt}&af_id={affiliateId}
+              </span>
+            )}
+          </div>
+        </div>
 
         {/* Links Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

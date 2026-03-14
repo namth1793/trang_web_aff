@@ -44,34 +44,34 @@ export default function HomePage() {
       </section>
 
       {/* Hướng dẫn */}
-      <section className="max-w-2xl mx-auto px-4 pb-12">
+      <section className="max-w-2xl mx-auto px-4 pb-6">
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-8">
           <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
             <span className="w-7 h-7 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center text-sm font-bold">?</span>
-            Hướng dẫn tạo link affiliate
+            Hướng dẫn nhận mã Shopee
           </h2>
           <ol className="space-y-5">
             {[
               {
                 step: 1,
                 icon: <Copy size={18} className="text-orange-500" />,
-                title: 'Copy link sản phẩm Shopee',
-                desc: 'Mở app hoặc website Shopee, tìm sản phẩm bạn muốn chia sẻ, nhấn nút "Chia sẻ" hoặc copy link trên trình duyệt.',
-                tip: 'Link hợp lệ có dạng: https://shopee.vn/...'
+                title: 'Sau khi tạo link, nhấn Copy Link',
+                desc: 'Dán link sản phẩm Shopee vào ô bên trên, nhấn "Tạo link affiliate", sau đó nhấn nút Copy Link để sao chép.',
+                tip: null
               },
               {
                 step: 2,
-                icon: <Link2 size={18} className="text-orange-500" />,
-                title: 'Dán link vào ô chuyển đổi',
-                desc: 'Dán link Shopee vào ô nhập ở trên, sau đó nhấn nút "Tạo link affiliate" hoặc dùng nút "Dán link" để tự động điền.',
+                icon: <MousePointerClick size={18} className="text-orange-500" />,
+                title: 'Dán link dưới bình luận bài đăng này',
+                desc: 'Vào bài đăng trên Facebook bên dưới, bình luận và dán link vừa copy vào phần bình luận của bài.',
                 tip: null
               },
               {
                 step: 3,
-                icon: <MousePointerClick size={18} className="text-orange-500" />,
-                title: 'Copy & chia sẻ link rút gọn',
-                desc: 'Sau khi chuyển đổi, copy link rút gọn và chia sẻ lên Facebook, Zalo, TikTok hoặc bất kỳ nơi nào bạn muốn.',
-                tip: 'Khi người khác mua hàng qua link của bạn, bạn sẽ nhận được hoa hồng từ Shopee Affiliate.'
+                icon: <Link2 size={18} className="text-orange-500" />,
+                title: 'Click vào link để mở Shopee & nhận mã',
+                desc: 'Nhấn vào link trong bình luận để mở Shopee. Bạn sẽ nhận được mã giảm giá từ chương trình Affiliate Shopee.',
+                tip: '💡 Mã sẽ xuất hiện trong ứng dụng Shopee sau khi bạn mở link.'
               }
             ].map(({ step, icon, title, desc, tip }) => (
               <li key={step} className="flex gap-4">
@@ -86,13 +86,36 @@ export default function HomePage() {
                   <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
                   {tip && (
                     <p className="mt-2 text-xs text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg inline-block">
-                      💡 {tip}
+                      {tip}
                     </p>
                   )}
                 </div>
               </li>
             ))}
           </ol>
+
+          {/* Link bài đăng Facebook */}
+          <div className="mt-6 pt-5 border-t border-gray-100">
+            <a
+              href="https://web.facebook.com/share/g/1AR7igk8Ni/?mibextid=wwXIfr&_rdc=1&_rdr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-2xl px-5 py-4 transition-all"
+            >
+              <div className="shrink-0 w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
+                <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-blue-800">Xem bài đăng để bình luận</p>
+                <p className="text-xs text-blue-500 mt-0.5">Nhấn vào đây → Bình luận link của bạn</p>
+              </div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16" className="text-blue-400 group-hover:translate-x-1 transition-transform shrink-0">
+                <path d="M13.172 12l-4.95-4.95 1.414-1.414L16 12l-6.364 6.364-1.414-1.414z" fill="currentColor"/>
+              </svg>
+            </a>
+          </div>
         </div>
       </section>
 
@@ -104,7 +127,6 @@ export default function HomePage() {
           rel="noopener noreferrer"
           className="group flex items-center gap-5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-3xl p-6 shadow-lg shadow-blue-200 transition-all hover:shadow-blue-300 hover:-translate-y-0.5"
         >
-          {/* Facebook Icon */}
           <div className="shrink-0 w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
             <svg viewBox="0 0 24 24" fill="white" width="28" height="28">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -113,13 +135,13 @@ export default function HomePage() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <Users size={15} className="text-blue-200" />
-              <span className="text-blue-200 text-xs font-medium uppercase tracking-wide">Cộng đồng</span>
+              <span className="text-blue-200 text-xs font-medium uppercase tracking-wide">Nhóm Facebook</span>
             </div>
             <p className="text-white font-bold text-lg leading-tight">
-              Tham gia nhóm Facebook
+              Tham gia nhóm gom order China giá rẻ
             </p>
             <p className="text-blue-200 text-sm mt-0.5">
-              Chia sẻ kinh nghiệm & link affiliate cùng cộng đồng
+              Hàng China chất lượng, giá tốt nhất — cập nhật deal mỗi ngày
             </p>
           </div>
           <div className="shrink-0 w-9 h-9 bg-white/20 group-hover:bg-white/30 rounded-xl flex items-center justify-center transition-colors">

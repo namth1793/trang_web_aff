@@ -82,4 +82,37 @@ router.post('/logout', authMiddleware, (req, res) => {
   res.json({ success: true });
 });
 
+// GET /api/admin/settings
+router.get('/settings', authMiddleware, (req, res) => {
+  const db = getDB();
+  const rows = db.prepare('SELECT key, value FROM settings').all();
+  const settings = {};
+  rows.forEach(r => { settings[r.key] = r.value; });
+  // Affiliate ID: ưu tiên DB, fallback env
+  if (!settings.shopee_affiliate_id && process.env.SHOPEE_AFFILIATE_ID) {
+    settings.shopee_affiliate_id = process.env.SHOPEE_AFFILIATE_ID;
+  }
+  res.json(settings);
+});
+
+// PUT /api/admin/settings
+router.put('/settings', authMiddleware, (req, res) => {
+  const { shopee_affiliate_id, shopee_smtt } = req.body;
+  const db = getDB();
+
+  const upsert = db.prepare(`
+    INSERT INTO settings (key, value, updated_at) VALUES (?, ?, datetime('now','localtime'))
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+  `);
+
+  if (shopee_affiliate_id !== undefined) {
+    upsert.run('shopee_affiliate_id', shopee_affiliate_id.trim());
+  }
+  if (shopee_smtt !== undefined) {
+    upsert.run('shopee_smtt', shopee_smtt.trim() || '0.0.9');
+  }
+
+  res.json({ success: true });
+});
+
 module.exports = router;
